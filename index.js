@@ -20,17 +20,45 @@ function setShape(response) {
         default:
             throw new Error('Invalid shape');
     }
-    shape.setColor(response.color);
-    console.log(`Color set: ${response.color}`);
-    return shape.render();
+    // // Debugging statements to verify the color values
+    // console.log(`Shape color choice: ${response.shapeColorChoice}`);
+    // console.log(`Shape color: ${response.shapeColor}`);
+
+    shape.setColor(response.shapeColor);
+    console.log(`Color set: ${shape.color}`);
+    return shape;
 };
 
 //creates new svg file using inquirer and fs
 function createLogo(response) {
-    const svg = setShape(response);
+    const shape = setShape(response);
+    const svgShape = shape.render();
+
+    // console.log(`Text: ${response.text}`);
+    // console.log(`Text color choice: ${response.textColorChoice}`);
+    // console.log(`Text color: ${response.textColor}`);
+    
+    let textCoordinates;
+    switch(response.shape) {
+        case "Triangle":
+            textCoordinates = { x: 100, y: 150 }; // Adjust y-coordinate for Triangle
+            break;
+        case "Square":
+            textCoordinates = { x: 60, y: 60 }; // Square
+            break;
+        case "Circle":
+            textCoordinates = { x: 100, y: 100 }; // Circle
+            break;
+        default:
+            textCoordinates = { x: 100, y: 100 }; // Default center
+    };
+
+    const svgText = `<text x="${textCoordinates.x}" y="${textCoordinates.y}" font-size="20" text-anchor="middle" dominant-baseline="middle" fill="${response.textColor}">${response.text}</text>`;
+    const svgContent = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">${svgShape}${svgText}</svg>`;
+    //html file that updates upon logo creation
     const fileName = 'logo.html';
     const htmlContent = `
-        <!DOCTYPE html>
+       <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -38,12 +66,11 @@ function createLogo(response) {
             <title>Logo</title>
         </head>
         <body>
-            <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-                ${svg}
-            </svg>
+            ${svgContent}
         </body>
         </html>
     `;
+    //updates said html with new logo
     fs.writeFile(fileName, htmlContent, (err) => {
         if (err) {
             console.log(err);
@@ -52,7 +79,7 @@ function createLogo(response) {
         }
     });
 };
-
+    //prompts the questions for user
 function init() {
     inquirer.prompt(questions)
     .then((response) => {
